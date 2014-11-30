@@ -1,4 +1,4 @@
-var VERSION = "1.2.1";
+var VERSION = "2.0";
 
 var isReady = false;
 var callbacks = [];
@@ -18,6 +18,15 @@ var langs = {
   fr:    5,
   no:    6,
   sv:    7
+};
+
+var fuzziness = {
+  five:    0,
+  fifteen: 1,
+  thirty:  2,
+  tod:     3, 
+  weekday: 4,
+  week:    5,
 };
 
 function readyCallback(event) {
@@ -44,7 +53,8 @@ function webviewclosed(event) {
   var options = JSON.parse(resp);
   if (typeof options.invert === 'undefined' &&
       typeof options.text_align === 'undefined' &&
-      typeof options.lang === 'undefined') {
+      typeof options.lang === 'undefined' &&
+      typeof options.fuzziness === 'undefined') {
     return;
   }
 
@@ -74,7 +84,8 @@ function prepareConfiguration(serialized_settings) {
   return {
     "0": settings.invert ? 1 : 0,
     "1": alignments[settings.text_align],
-    "2": langs[settings.lang]
+    "2": langs[settings.lang],
+	"3": fuzziness[settings.fuzziness]
   };
 }
 

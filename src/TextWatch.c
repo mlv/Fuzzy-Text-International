@@ -13,10 +13,18 @@
 #define INVERT_KEY 0
 #define TEXT_ALIGN_KEY 1
 #define LANGUAGE_KEY 2
+#define FUZZINESS_KEY 3
 
 #define TEXT_ALIGN_CENTER 0
 #define TEXT_ALIGN_LEFT 1
 #define TEXT_ALIGN_RIGHT 2
+
+#define FUZZINESS_FIVE 0
+#define FUZZINESS_FIFTEEN 1
+#define FUZZINESS_THIRTY 2
+#define FUZZINESS_TOD 3
+#define FUZZINESS_WEEKDAY 4
+#define FUZZINESS_WEEK 5
 
 // The time it takes for a layer to slide in or out.
 #define ANIMATION_DURATION 400
@@ -35,6 +43,7 @@ static uint8_t sync_buffer[64];
 static int text_align = TEXT_ALIGN_CENTER;
 static bool invert = false;
 static Language lang = EN_US;
+static int fuzziness = FUZZINESS_FIVE;
 
 static Window *window;
 
@@ -211,8 +220,12 @@ static int configureLayersForText(char text[NUM_LINES][BUFFER_SIZE], char format
 	return numLines;
 }
 
-static void time_to_lines(int hours, int minutes, int seconds, char lines[NUM_LINES][BUFFER_SIZE], char format[])
+static void time_to_lines(struct tm *t, char lines[NUM_LINES][BUFFER_SIZE], char format[])
 {
+	int hours = t->tm_hour;
+	int minutes = t->tm_min;
+	int seconds = t->tm_sec;
+
 	int length = NUM_LINES * BUFFER_SIZE + 1;
 	char timeStr[length];
 	time_to_words(lang, hours, minutes, seconds, timeStr, length);
@@ -226,6 +239,10 @@ static void time_to_lines(int hours, int minutes, int seconds, char lines[NUM_LI
 	char *start = timeStr;
 	char *end = strstr(start, " ");
 	int l = 0;
+
+//	start[0] = '0' + fuzziness;
+//	start[1] = '\0';
+
 	while (end != NULL && l < NUM_LINES) {
 		// Check word for bold prefix
 		if (*start == '*' && end - start > 1)
@@ -270,7 +287,7 @@ static void display_time(struct tm *t)
 	char textLine[NUM_LINES][BUFFER_SIZE];
 	char format[NUM_LINES];
 
-	time_to_lines(t->tm_hour, t->tm_min, t->tm_sec, textLine, format);
+	time_to_lines(t, textLine, format);
 	
 	int nextNLines = configureLayersForText(textLine, format);
 
@@ -305,7 +322,7 @@ static void display_initial_time(struct tm *t)
 	char textLine[NUM_LINES][BUFFER_SIZE];
 	char format[NUM_LINES];
 
-	time_to_lines(t->tm_hour, t->tm_min, t->tm_sec, textLine, format);
+	time_to_lines(t, textLine, format);
 
 	// This configures the nextLayer for each line
 	currentNLines = configureLayersForText(textLine, format);
@@ -416,6 +433,18 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
 			{
 				display_time(t);
 			}
+			break;
+
+		case FUZZINESS_KEY:
+			fuzziness = new_tuple->value->uint8;
+			persist_write_int(FUZZINESS_KEY, fuzziness);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "Set fuzziness: %u", fuzziness);
+
+			if (t)
+			{
+				display_time(t);
+			}
+			break;
 	}
 }
 
@@ -474,7 +503,8 @@ static void window_load(Window *window)
 	Tuplet initial_values[] = {
 		TupletInteger(TEXT_ALIGN_KEY, (uint8_t) text_align),
 		TupletInteger(INVERT_KEY,     (uint8_t) invert ? 1 : 0),
-		TupletInteger(LANGUAGE_KEY,   (uint8_t) lang)
+		TupletInteger(LANGUAGE_KEY,   (uint8_t) lang),
+		TupletInteger(FUZZINESS_KEY,  (uint8_t) fuzziness)
 	};
 
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values),
