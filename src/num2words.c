@@ -103,32 +103,55 @@ const char* get_rel(Language lang, int index) {
   }
 }
 
-void time_to_words(Language lang, int hours, int minutes, int seconds, char* words, size_t buffer_size) {
+void time_to_words(Language lang, struct tm *t, char* words, size_t buffer_size)
+{
+	int hours = t->tm_hour;
+ int minutes = t->tm_min;
+	int seconds = t->tm_sec;
+	 	int rel_index = fuzziness;
 
-  size_t remaining = buffer_size;
-  memset(words, 0, buffer_size);
+	size_t remaining = buffer_size;
+	memset(words, 0, buffer_size);
+	
+	if (fuzziness <= FUZZINESS_FIFTEEN)
+	{
+			int half_mins;
+			
+			 half_mins  = (2 * minutes) + (seconds / 30);
+			 
+			if (fuzziness == FUZZINESS_FIVE)
+			{
+	// We want to operate with a resolution of 30 seconds.  So multiply
+	// minutes and seconds by 2.  Then divide by (2 * 5) to carve the hour
+	// into five minute intervals.
+	rel_index  = ((half_mins + 5) / (2 * 5)) % 12;
+	}
+	else
+	{
+			rel_index=(((half_mins+15)/30)*3)%12;
+		}
+		}
+	int hour_index;
+	
+// fifteen:
+// 
+//	In [24]: def fifteen(min,sec):
+//    halfmin=(2*min)+(sec/30)
+//		return (int((halfmin+15)/30)*3)%12
 
-  // We want to operate with a resolution of 30 seconds.  So multiply
-  // minutes and seconds by 2.  Then divide by (2 * 5) to carve the hour
-  // into five minute intervals.
-  int half_mins  = (2 * minutes) + (seconds / 30);
-  int rel_index  = ((half_mins + 5) / (2 * 5)) % 12;
-  int hour_index;
-
-  if (rel_index == 0 && minutes > 30) {
-    hour_index = (hours + 1) % 24;
-  }
-  else {
-    hour_index = hours % 24;
-  }
-
-  const char* hour = get_hour(lang, hour_index);
-  const char* next_hour = get_hour(lang, (hour_index + 1) % 24);
-  const char* rel  = get_rel(lang, rel_index);
-
-  remaining -= interpolate_and_append(words, remaining, rel, hour, next_hour);
-
-  // Leave one space at the end
-  remaining -= append_string(words, remaining, " ");
-
+	if (rel_index == 0 && minutes > 30) {
+		hour_index = (hours + 1) % 24;
+	}
+	else {
+		hour_index = hours % 24;
+	}
+	
+	const char* hour = get_hour(lang, hour_index);
+	const char* next_hour = get_hour(lang, (hour_index + 1) % 24);
+	const char* rel  = get_rel(lang, rel_index);
+	
+	remaining -= interpolate_and_append(words, remaining, rel, hour, next_hour);
+	
+	// Leave one space at the end
+	remaining -= append_string(words, remaining, " ");
 }

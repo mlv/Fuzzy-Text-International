@@ -1,4 +1,3 @@
-#include <pebble.h>
 
 #include "num2words.h"
 
@@ -19,12 +18,6 @@
 #define TEXT_ALIGN_LEFT 1
 #define TEXT_ALIGN_RIGHT 2
 
-#define FUZZINESS_FIVE 0
-#define FUZZINESS_FIFTEEN 1
-#define FUZZINESS_THIRTY 2
-#define FUZZINESS_TOD 3
-#define FUZZINESS_WEEKDAY 4
-#define FUZZINESS_WEEK 5
 
 // The time it takes for a layer to slide in or out.
 #define ANIMATION_DURATION 400
@@ -43,7 +36,7 @@ static uint8_t sync_buffer[64];
 static int text_align = TEXT_ALIGN_CENTER;
 static bool invert = false;
 static Language lang = EN_US;
-static int fuzziness = FUZZINESS_FIVE;
+int fuzziness = FUZZINESS_FIVE;
 
 static Window *window;
 
@@ -228,7 +221,7 @@ static void time_to_lines(struct tm *t, char lines[NUM_LINES][BUFFER_SIZE], char
 
 	int length = NUM_LINES * BUFFER_SIZE + 1;
 	char timeStr[length];
-	time_to_words(lang, hours, minutes, seconds, timeStr, length);
+	time_to_words(lang, t, timeStr, length);
 	
 	// Empty all lines
 	for (int i = 0; i < NUM_LINES; i++)
