@@ -1,5 +1,6 @@
 #pragma once
 #include "string.h"
+#include <pebble.h>
 
 typedef enum {
   CA    = 0x0,
@@ -12,4 +13,13 @@ typedef enum {
   SV    = 0x7
 } Language;
 
-void time_to_words(Language lang, int hours, int minutes, int seconds, char* words, size_t length);
+#define FUZZINESS_FIVE 0
+#define FUZZINESS_FIFTEEN 1
+#define FUZZINESS_THIRTY 2
+#define FUZZINESS_TOD 3
+#define FUZZINESS_WEEKDAY 4
+#define FUZZINESS_WEEK 5
+
+extern int fuzziness;
+
+void time_to_words(Language lang, struct tm *t, char* words, size_t buffer_size);
