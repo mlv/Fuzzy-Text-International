@@ -31,7 +31,7 @@
 #define LINE_APPEND_LIMIT (LINE_LENGTH - LINE_APPEND_MARGIN)
 
 static AppSync sync;
-static uint8_t sync_buffer[64];
+static uint8_t sync_buffer[128];
 
 static int text_align = TEXT_ALIGN_CENTER;
 static bool invert = false;
@@ -532,6 +532,11 @@ static void handle_init() {
 	{
 		lang = (Language) persist_read_int(LANGUAGE_KEY);
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read language from store: %u", lang);
+	}
+	if (persist_exists(FUZZINESS_KEY))
+	{
+		fuzziness = persist_read_int(FUZZINESS_KEY);
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read fuzziness from store: %u", fuzziness);
 	}
 
 	window = window_create();
