@@ -7,7 +7,7 @@
 #define LINE_LENGTH 7
 #define BUFFER_SIZE (LINE_LENGTH + 2)
 #define ROW_HEIGHT 37
-#define TOP_MARGIN 10
+#define TOP_MARGIN 18
 
 #define INVERT_KEY 0
 #define TEXT_ALIGN_KEY 1
@@ -39,6 +39,19 @@ static Language lang = EN_US;
 int fuzziness = FUZZINESS_FIVE;
 
 static Window *window;
+
+TextLayer *statusLayer = NULL;
+char statusLayer_text[32];
+
+static VibePattern twoshort_pattern = {
+  .durations = (uint32_t []) {50, 50, 50},
+  .num_segments = 3
+};
+
+static VibePattern three_pattern = {
+  .durations = (uint32_t []) {300, 200, 300, 200, 300},
+  .num_segments = 5
+};
 
 typedef struct {
 	TextLayer *currentLayer;
@@ -139,6 +152,83 @@ static bool needToUpdateLine(Line *line, char *nextValue)
 	return false;
 }
 
+BatteryChargeState last_charge_state;
+bool last_bluetooth_status;
+
+static void
+update_status(BatteryChargeState charge_state, bool connected)
+{
+	char bt_status[32];
+	char ch_status[32];
+	char new_statusLayer_text[32];
+
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "BT:%s, charge state: %s %s %d%%",
+			(last_bluetooth_status ? "connected" : "DISCONNECTED"),
+			(charge_state.is_charging ? "charging" : "notCharging"),
+			(charge_state.is_plugged  ? "plugged" : "unplugged"),
+			charge_state.charge_percent);
+	
+	if (!connected)
+	{
+		if (last_bluetooth_status)
+			strcpy(bt_status, "DISCONNECTED!! ");
+		else
+			strcpy(bt_status,"No BT! ");
+	}
+	else
+	{
+		if (last_bluetooth_status == 0)
+			strcpy(bt_status, "Reconnected! ");
+		else 
+			bt_status[0]=0;
+	}
+	
+	// is_plugged shows if there's power. is_charging shows if the battery isn't full
+	// always show something if plugged in.
+	// vibrate if either is_plugged or is_charging changes.
+	if (charge_state.is_plugged)
+	{
+		snprintf(ch_status, sizeof(ch_status), "%s %d%%",
+				 (charge_state.is_charging ? "Charging" : "CHARGED!"),
+				 charge_state.charge_percent);
+	}
+	else
+		ch_status[0]=0;
+		
+	snprintf(new_statusLayer_text, sizeof(new_statusLayer_text), "%s%s", bt_status, ch_status);
+		
+	if (strcmp(new_statusLayer_text, statusLayer_text) != 0)
+		{
+			strcpy(statusLayer_text, new_statusLayer_text);
+			layer_mark_dirty((Layer*)statusLayer);
+		}
+	
+
+	if (last_charge_state.is_charging != charge_state.is_charging
+		|| last_charge_state.is_charging != charge_state.is_charging
+		|| connected != last_bluetooth_status 
+		)
+	{
+		vibes_enqueue_custom_pattern(three_pattern);
+	}
+
+	last_charge_state = charge_state;
+}
+
+void
+handle_bluetooth(bool connected)
+{
+	update_status(last_charge_state, connected);
+	last_bluetooth_status = connected;
+}
+
+static void 
+handle_battery(BatteryChargeState charge_state)
+{
+	update_status(charge_state, last_bluetooth_status);
+	last_charge_state = charge_state;
+}
+
 static GTextAlignment lookup_text_alignment(int align_key)
 {
 	GTextAlignment alignment;
@@ -215,9 +305,9 @@ static int configureLayersForText(char text[NUM_LINES][BUFFER_SIZE], char format
 
 static void time_to_lines(struct tm *t, char lines[NUM_LINES][BUFFER_SIZE], char format[])
 {
-	int hours = t->tm_hour;
-	int minutes = t->tm_min;
-	int seconds = t->tm_sec;
+//	int hours = t->tm_hour;
+//	int minutes = t->tm_min;
+//	int seconds = t->tm_sec;
 
 	int length = NUM_LINES * BUFFER_SIZE + 1;
 	char timeStr[length];
@@ -334,6 +424,9 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 {
 	t = tick_time;
 	display_time(tick_time);
+	update_status(last_charge_state, last_bluetooth_status);
+	if (t->tm_min == 0)
+		vibes_enqueue_custom_pattern(twoshort_pattern);
 }
 
 /**
@@ -474,6 +567,15 @@ static void window_load(Window *window)
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_frame(window_layer);
 
+	statusLayer = text_layer_create(GRect(0, 0, 144, TOP_MARGIN));
+	text_layer_set_font(statusLayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_text_color(statusLayer, GColorWhite);
+	text_layer_set_background_color(statusLayer, GColorClear);
+	
+	layer_add_child(window_layer, (Layer *)statusLayer);
+	statusLayer_text[0] = 0;
+	text_layer_set_text(statusLayer, statusLayer_text);
+
 	// Init and load lines
 	for (int i = 0; i < NUM_LINES; i++)
 	{
@@ -556,6 +658,12 @@ static void handle_init() {
 
 	// Subscribe to minute ticks
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+
+	last_charge_state = battery_state_service_peek();
+	battery_state_service_subscribe(&handle_battery);
+
+	last_bluetooth_status = bluetooth_connection_service_peek();
+	bluetooth_connection_service_subscribe(&handle_bluetooth);
 
 #if DEBUG
 	// Button functionality
