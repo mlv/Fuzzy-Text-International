@@ -7,7 +7,7 @@
 #define LINE_LENGTH 7
 #define BUFFER_SIZE (LINE_LENGTH + 2)
 #define ROW_HEIGHT 37
-#define TOP_MARGIN 18
+#define TOP_MARGIN 24
 
 #define INVERT_KEY 0
 #define TEXT_ALIGN_KEY 1
@@ -44,8 +44,8 @@ TextLayer *statusLayer = NULL;
 char statusLayer_text[32];
 
 static VibePattern twoshort_pattern = {
-  .durations = (uint32_t []) {50, 50, 50},
-  .num_segments = 3
+  .durations = (uint32_t []) {50, 150, 50},
+  .num_segments = 3, 
 };
 
 static VibePattern three_pattern = {
