@@ -291,7 +291,7 @@ static int configureLayersForText(char text[NUM_LINES][BUFFER_SIZE], char format
 	numLines = i;
 
 	// Calculate y position of top Line
-	int ypos = (168 - numLines * ROW_HEIGHT) / 2 - TOP_MARGIN;
+	int ypos = (168 - numLines * ROW_HEIGHT) / 2; // - TOP_MARGIN;
 
 	// Set y positions for the lines
 	for (int i = 0; i < numLines; i++)
