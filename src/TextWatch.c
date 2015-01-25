@@ -435,7 +435,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
  */
 #if DEBUG
 
-static void up_single_click_handler(ClickRecognizerRef recognizer, Window *window) {
+static void up_single_click_handler(ClickRecognizerRef recognizer, void *window) {
 	(void)recognizer;
 	(void)window;
 	
@@ -452,7 +452,7 @@ static void up_single_click_handler(ClickRecognizerRef recognizer, Window *windo
 }
 
 
-static void down_single_click_handler(ClickRecognizerRef recognizer, Window *window) {
+static void down_single_click_handler(ClickRecognizerRef recognizer, void *window) {
 	(void)recognizer;
 	(void)window;
 	
@@ -468,14 +468,14 @@ static void down_single_click_handler(ClickRecognizerRef recognizer, Window *win
 	display_time(t);
 }
 
-static void click_config_provider(ClickConfig **config, Window *window) {
-  (void)window;
+static void click_config_provider(void *context) {
+//  (void)window;
 
-  config[BUTTON_ID_UP]->click.handler = (ClickHandler) up_single_click_handler;
-  config[BUTTON_ID_UP]->click.repeat_interval_ms = 100;
+	window_single_click_subscribe(BUTTON_ID_UP, up_single_click_handler);
+	window_single_click_subscribe(BUTTON_ID_DOWN, down_single_click_handler);
 
-  config[BUTTON_ID_DOWN]->click.handler = (ClickHandler) down_single_click_handler;
-  config[BUTTON_ID_DOWN]->click.repeat_interval_ms = 100;
+//  config[BUTTON_ID_DOWN]->click.handler = (ClickHandler) down_single_click_handler;
+//  config[BUTTON_ID_DOWN]->click.repeat_interval_ms = 100;
 }
 
 #endif
