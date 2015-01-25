@@ -23,10 +23,10 @@ var langs = {
 var fuzziness = {
   five:    0,
   fifteen: 1,
-  thirty:  2,
-  tod:     3, 
-  weekday: 4,
-  week:    5,
+//  thirty:  2,
+//  tod:     3, 
+//  weekday: 4,
+//  week:    5,
 };
 
 function readyCallback(event) {
@@ -55,7 +55,10 @@ function webviewclosed(event) {
   if (typeof options.invert === 'undefined' &&
       typeof options.text_align === 'undefined' &&
       typeof options.lang === 'undefined' &&
-      typeof options.fuzziness === 'undefined') {
+      typeof options.fuzziness === 'undefined' &&
+      typeof options.bt_diag === 'undefined' &&
+      typeof options.ch_diag === 'undefined' &&
+      typeof options.hourly_vibe === 'undefined') {
     return;
   }
 
@@ -86,7 +89,10 @@ function prepareConfiguration(serialized_settings) {
     "0": settings.invert ? 1 : 0,
     "1": alignments[settings.text_align],
     "2": langs[settings.lang],
-	"3": fuzziness[settings.fuzziness]
+	"3": fuzziness[settings.fuzziness],
+    "4": settings.bt_diag ? 1 : 0,
+    "5": settings.ch_diag ? 1 : 0,
+    "6": settings.hourly_vibe ? 1 : 0
   };
 }
 

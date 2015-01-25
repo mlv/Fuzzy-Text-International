@@ -13,6 +13,9 @@
 #define TEXT_ALIGN_KEY 1
 #define LANGUAGE_KEY 2
 #define FUZZINESS_KEY 3
+#define BT_DIAG_KEY 4
+#define CH_DIAG_KEY 5
+#define HOURLY_VIBE_KEY 6
 
 #define TEXT_ALIGN_CENTER 0
 #define TEXT_ALIGN_LEFT 1
@@ -37,6 +40,9 @@ static int text_align = TEXT_ALIGN_CENTER;
 static bool invert = false;
 static Language lang = EN_US;
 int fuzziness = FUZZINESS_FIVE;
+static bool bt_diag = true;
+static bool ch_diag = true;
+static bool hourly_vibe = true;
 
 static Window *window;
 
@@ -68,6 +74,9 @@ static InverterLayer *inverter_layer;
 static struct tm *t;
 
 static int currentNLines;
+
+void setup_bt_handler(void);
+void setup_ch_handler(void);
 
 // Animation handler
 static void animationStoppedHandler(struct Animation *animation, bool finished, void *context)
@@ -425,7 +434,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 	t = tick_time;
 	display_time(tick_time);
 	update_status(last_charge_state, last_bluetooth_status);
-	if (t->tm_min == 0)
+	if (t->tm_min == 0 && hourly_vibe)
 		vibes_enqueue_custom_pattern(twoshort_pattern);
 }
 
@@ -531,6 +540,29 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
 				display_time(t);
 			}
 			break;
+
+		case BT_DIAG_KEY:
+			bt_diag = new_tuple->value->uint8 == 1;
+			persist_write_bool(BT_DIAG_KEY, bt_diag);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "Set bt_diag: %u", bt_diag ? 1 : 0);
+			
+			setup_bt_handler();
+			break;
+
+		case CH_DIAG_KEY:
+			ch_diag = new_tuple->value->uint8 == 1;
+			persist_write_bool(CH_DIAG_KEY, ch_diag);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "Set ch_diag: %u", ch_diag ? 1 : 0);
+
+			setup_ch_handler();
+			break;
+
+		case HOURLY_VIBE_KEY:
+			hourly_vibe = new_tuple->value->uint8 == 1;
+			persist_write_bool(HOURLY_VIBE_KEY, hourly_vibe);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "Set hourly_vibe: %u", hourly_vibe ? 1 : 0);
+
+			break;
 	}
 }
 
@@ -599,7 +631,10 @@ static void window_load(Window *window)
 		TupletInteger(TEXT_ALIGN_KEY, (uint8_t) text_align),
 		TupletInteger(INVERT_KEY,     (uint8_t) invert ? 1 : 0),
 		TupletInteger(LANGUAGE_KEY,   (uint8_t) lang),
-		TupletInteger(FUZZINESS_KEY,  (uint8_t) fuzziness)
+		TupletInteger(FUZZINESS_KEY,  (uint8_t) fuzziness),
+		TupletInteger(BT_DIAG_KEY,    (uint8_t) bt_diag ? 1 : 0),
+		TupletInteger(CH_DIAG_KEY,    (uint8_t) ch_diag ? 1 : 0),
+		TupletInteger(HOURLY_VIBE_KEY,(uint8_t) hourly_vibe ? 1 : 0)
 	};
 
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values),
@@ -618,6 +653,36 @@ static void window_unload(Window *window)
 	}
 }
 
+void
+setup_ch_handler(void)
+{
+	if (ch_diag)
+	{
+		last_charge_state = battery_state_service_peek();
+		battery_state_service_subscribe(&handle_battery);
+	}
+	else
+	{
+		last_charge_state.is_plugged = false;
+		battery_state_service_unsubscribe();
+	}
+}
+
+void
+setup_bt_handler(void)
+{
+	if (bt_diag)
+	{
+		last_bluetooth_status = bluetooth_connection_service_peek();
+		bluetooth_connection_service_subscribe(&handle_bluetooth);
+	}
+	else
+	{
+		last_bluetooth_status = true;
+		bluetooth_connection_service_unsubscribe();
+	}
+}
+	
 static void handle_init() {
 	// Load settings from persistent storage
 	if (persist_exists(TEXT_ALIGN_KEY))
@@ -640,6 +705,21 @@ static void handle_init() {
 		fuzziness = persist_read_int(FUZZINESS_KEY);
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read fuzziness from store: %u", fuzziness);
 	}
+	if (persist_exists(BT_DIAG_KEY))
+	{
+		bt_diag = persist_read_bool(BT_DIAG_KEY);
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read bt_diag from store: %u", bt_diag ? 1 : 0);
+	}
+	if (persist_exists(CH_DIAG_KEY))
+	{
+		ch_diag = persist_read_bool(CH_DIAG_KEY);
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read ch_diag from store: %u", ch_diag ? 1 : 0);
+	}
+	if (persist_exists(HOURLY_VIBE_KEY))
+	{
+		hourly_vibe = persist_read_bool(HOURLY_VIBE_KEY);
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Read hourly_vibe from store: %u",hourly_vibe ? 1 : 0);
+	}
 
 	window = window_create();
 	window_set_background_color(window, GColorBlack);
@@ -659,11 +739,8 @@ static void handle_init() {
 	// Subscribe to minute ticks
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 
-	last_charge_state = battery_state_service_peek();
-	battery_state_service_subscribe(&handle_battery);
-
-	last_bluetooth_status = bluetooth_connection_service_peek();
-	bluetooth_connection_service_subscribe(&handle_bluetooth);
+	setup_ch_handler();
+	setup_bt_handler();
 
 #if DEBUG
 	// Button functionality

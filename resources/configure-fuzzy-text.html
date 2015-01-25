@@ -154,6 +154,7 @@
 						quarter after four
 					</label>
 				</div>
+<!---
 				<div class="radio">
 					<label>
 						<input type="radio" name="fuzziness" value="thirty" />
@@ -176,6 +177,37 @@
 					<label>
 						<input type="radio" name="fuzziness" value="week" />
 						End of week
+					</label>
+				</div>
+--->
+			</fieldset>
+
+			<fieldset>
+				<legend>Bluetooth:</legend>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="bt_diag" value="on" />
+						Show disconnected bluetooth.
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>Charging status:</legend>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="ch_diag" value="on" />
+						Show charging status.
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>Hourly vibrate:</legend>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="hourly_vibe" value="on" />
+						Vibrate at the top of the hour.
 					</label>
 				</div>
 			</fieldset>
@@ -202,10 +234,13 @@
 			});
 
 			var options = {
-				invert:		params.invert === 'on',
-				text_align:	params.align || 'center',
-				lang:		params.lang,
-		        fuzziness:  params.fuzziness,
+				invert:		 params.invert === 'on',
+				text_align:	 params.align || 'center',
+				lang:		 params.lang,
+		        fuzziness:   params.fuzziness,
+		        bt_diag:     params.bt_diag === 'on',
+		        ch_diag:     params.ch_diag === 'on',
+                hourly_vibe: params.hourly_vibe === 'on',
 			}
 			return options;
 		}
@@ -230,6 +265,15 @@
 				$form.find('[name="fuzziness"]').filter(function(i, btn) {
 					return btn.value === opts.fuzziness;
 				}).prop('checked', true);
+			}
+			if (opts && opts.bt_diag) {
+				$form.find('[name="bt_diag"]').prop('checked', true);
+			}
+			if (opts && opts.ch_diag) {
+				$form.find('[name="ch_diag"]').prop('checked', true);
+			}
+			if (opts && opts.hourly_vibe) {
+				$form.find('[name="hourly_vibe"]').prop('checked', true);
 			}
 		}
 
