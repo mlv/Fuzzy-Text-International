@@ -296,7 +296,11 @@
 		}
 
 		$("#b-submit").click(function() {
-			var location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(saveOptions()));
+		    return_to = getParam("return_to");
+		    if (!return_to) {
+			return_to = "pebblejs://close#";
+                    }
+			var location = return_to + encodeURIComponent(JSON.stringify(saveOptions()));
 			document.location = location;
 		});
 
