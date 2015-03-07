@@ -52,3 +52,11 @@ const char* const RELS_EN_US[] = {
   "five to *$2"
 };
 
+const char* const ALERTS_EN_US[5] = 
+{
+	"DISCONNECTED!",
+	"No BT!",
+	"Reconnected!",
+	"Charging",
+	"CHARGED!",
+};

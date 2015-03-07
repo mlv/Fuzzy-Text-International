@@ -23,3 +23,11 @@ typedef enum {
 extern int fuzziness;
 
 void time_to_words(Language lang, struct tm *t, char* words, size_t buffer_size);
+
+const char *get_alert(Language lang, int index);
+
+#define ALERT_DISCONNECTED 0
+#define ALERT_NOBT         1
+#define ALERT_RECONNECTED  2
+#define ALERT_CHARGING     3
+#define ALERT_CHARGED      4

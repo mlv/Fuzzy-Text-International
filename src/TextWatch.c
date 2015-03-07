@@ -180,14 +180,18 @@ update_status(BatteryChargeState charge_state, bool connected)
 	if (!connected)
 	{
 		if (last_bluetooth_status)
-			strcpy(bt_status, "DISCONNECTED!! ");
+			strcpy(bt_status, get_alert(lang, ALERT_DISCONNECTED));
 		else
-			strcpy(bt_status,"No BT! ");
+			strcpy(bt_status,get_alert(lang, ALERT_NOBT));
+		strcat(bt_status," ");
 	}
 	else
 	{
 		if (last_bluetooth_status == 0)
-			strcpy(bt_status, "Reconnected! ");
+		{
+			strcpy(bt_status,get_alert(lang, ALERT_RECONNECTED));
+			strcat(bt_status," ");
+		}
 		else 
 			bt_status[0]=0;
 	}
@@ -198,7 +202,7 @@ update_status(BatteryChargeState charge_state, bool connected)
 	if (charge_state.is_plugged)
 	{
 		snprintf(ch_status, sizeof(ch_status), "%s %d%%",
-				 (charge_state.is_charging ? "Charging" : "CHARGED!"),
+				 (charge_state.is_charging ? get_alert(lang, ALERT_CHARGING) : get_alert(lang, ALERT_CHARGED)),
 				 charge_state.charge_percent);
 	}
 	else

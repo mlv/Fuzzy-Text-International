@@ -51,3 +51,13 @@ const char* const RELS_SV[] = {
   "tio i *$2",
   "fem i *$2"
 };
+
+
+const char* const ALERTS_SV[5] = 
+{
+	"FRÅNKOPPLAD!",
+	"Nej BT!",
+	"Återinkopplas!",
+	"Laddning",
+	"LADDAD!",
+};

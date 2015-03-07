@@ -103,6 +103,35 @@ const char* get_rel(Language lang, int index) {
   }
 }
 
+const char* get_alert(Language lang, int index) {
+  switch (lang) {
+    case CA:
+      return ALERTS_CA[index];
+      break;
+    case DE:
+      return ALERTS_DE[index];
+      break;
+    case EN_GB:
+      return ALERTS_EN_GB[index];
+      break;
+    case ES:
+      return ALERTS_ES[index];
+      break;
+    case FR:
+      return ALERTS_FR[index];
+      break;
+    case NO:
+      return ALERTS_NO[index];
+      break;
+    case SV:
+      return ALERTS_SV[index];
+      break;
+    default:
+      return ALERTS_EN_US[index];
+  }
+}
+
+
 void time_to_words(Language lang, struct tm *t, char* words, size_t buffer_size)
 {
 	int hours = t->tm_hour;
