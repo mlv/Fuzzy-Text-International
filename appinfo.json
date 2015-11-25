@@ -9,9 +9,10 @@
     "resources": {
         "media": []
     },
+    "sdkVersion": "2",
     "shortName": "Fuzzier Text Int'l",
     "uuid": "9641af77-1548-4bc8-9bd0-b52b4268b25b",
-    "versionCode": 4,
+    "versionCode": 1,
     "versionLabel": "2.0",
     "watchapp": {
         "watchface": true

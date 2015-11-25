@@ -52,12 +52,3 @@ const char* const RELS_ES[] = {
   "*$2 menos cinco"
 };
 
-
-const char* const ALERTS_ES[5] = 
-{
-	"DESCONECTADO!",
-	"No BT!",
-	"Reconnected!",
-	"Carga",
-	"cargado!",
-};

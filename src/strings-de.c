@@ -52,12 +52,3 @@ const char* const RELS_DE[] = {
   "fünf vor *$2"
 };
 
-
-const char* const ALERTS_DE[5] = 
-{
-	"Getrennt!",
-	"Kein BT!",
-	"Wieder verbunden!",
-	"Laden",
-	"GELADENE!",
-};

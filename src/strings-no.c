@@ -52,12 +52,3 @@ const char* const RELS_NO[] = {
   "fem på *$2"
 };
 
-
-const char* const ALERTS_NO[5] = 
-{
-	"FRAKOBLET!",
-	"Ingen BT!",
-	"Koblet til igjen",
-	"Lading",
-	"Belastet!",
-};

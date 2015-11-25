@@ -52,12 +52,3 @@ const char* const RELS_CA[] = {
   "tres quarts i deu de *$2"
 };
 
-
-const char* const ALERTS_CA[5] = 
-{
-	"Desconnectat!",
-	"No BT!",
-	"Reconnected!",
-	"Càrrega",
-	"CARREGAT!",
-};

@@ -171,6 +171,10 @@ update_status(BatteryChargeState charge_state, bool connected)
 	char ch_status[32];
 	char new_statusLayer_text[32];
 
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "last charge state: %s %s ",
+			(last_charge_state.is_charging ? "charging" : "notCharging"),
+			(last_charge_state.is_plugged  ? "plugged" : "unplugged"));
+	
 	APP_LOG(APP_LOG_LEVEL_DEBUG, "BT:%s, charge state: %s %s %d%%",
 			(last_bluetooth_status ? "connected" : "DISCONNECTED"),
 			(charge_state.is_charging ? "charging" : "notCharging"),
@@ -180,18 +184,14 @@ update_status(BatteryChargeState charge_state, bool connected)
 	if (!connected)
 	{
 		if (last_bluetooth_status)
-			strcpy(bt_status, get_alert(lang, ALERT_DISCONNECTED));
+			strcpy(bt_status, "DISCONNECTED!! ");
 		else
-			strcpy(bt_status,get_alert(lang, ALERT_NOBT));
-		strcat(bt_status," ");
+			strcpy(bt_status,"No BT! ");
 	}
 	else
 	{
 		if (last_bluetooth_status == 0)
-		{
-			strcpy(bt_status,get_alert(lang, ALERT_RECONNECTED));
-			strcat(bt_status," ");
-		}
+			strcpy(bt_status, "Reconnected! ");
 		else 
 			bt_status[0]=0;
 	}
@@ -202,7 +202,7 @@ update_status(BatteryChargeState charge_state, bool connected)
 	if (charge_state.is_plugged)
 	{
 		snprintf(ch_status, sizeof(ch_status), "%s %d%%",
-				 (charge_state.is_charging ? get_alert(lang, ALERT_CHARGING) : get_alert(lang, ALERT_CHARGED)),
+				 (charge_state.is_charging ? "Charging" : "CHARGED!"),
 				 charge_state.charge_percent);
 	}
 	else
@@ -218,11 +218,16 @@ update_status(BatteryChargeState charge_state, bool connected)
 	
 
 	if (last_charge_state.is_charging != charge_state.is_charging
-		|| last_charge_state.is_charging != charge_state.is_charging
+		|| last_charge_state.is_plugged != charge_state.is_plugged
 		|| connected != last_bluetooth_status 
 		)
 	{
-		vibes_enqueue_custom_pattern(three_pattern);
+    if (connected == last_bluetooth_status && charge_state.is_plugged)
+    {
+    	vibes_enqueue_custom_pattern(twoshort_pattern);    
+    }
+  	else
+  		vibes_enqueue_custom_pattern(three_pattern);
 	}
 
 	last_charge_state = charge_state;
